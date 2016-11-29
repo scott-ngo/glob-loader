@@ -6,7 +6,8 @@ var path = require("path");
 module.exports = function (content, sourceMap) {
   this.cacheable && this.cacheable();
   var resourceDir = path.dirname(this.resourcePath);
-  var pattern = content.trim();
+  var config = JSON.parse(content);
+  var pattern = config.pattern;
   var files = glob.sync(pattern, {
     cwd: resourceDir
   });
@@ -19,6 +20,10 @@ module.exports = function (content, sourceMap) {
     this.addDependency(path.resolve(resourceDir, file));
 
     var stringifiedFile = JSON.stringify(file);
-    return "\t" + stringifiedFile + ": require(" + stringifiedFile + ")";
+
+    if(config.hash === true) 
+      return "\t" + JSON.stringify(path.basename(file, '.js')) + ": require(" + stringifiedFile + ")";
+    else
+      return "\t" + JSON.stringify(file.slice(0,-3)) + ": require(" + stringifiedFile + ")";    
   }, this).join(",\n") + "\n};"
 };
